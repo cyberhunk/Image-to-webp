@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiple Image to WebP Converter</title>
+
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .box {
+      border: 2px dashed #333;
+      padding: 20px;
+      width: 300px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>Convert Multiple Images to WebP (High Quality)</h2>
+
+  <div class="box">
+    <input type="file" id="inputFile" accept="image/*" multiple>
+    <p>Select multiple JPG / PNG / JPEG images</p>
+  </div>
+
+  <script>
+    function convertToWebp(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.readAsDataURL(file);
+
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const webpFile = new File([blob], file.name.replace(/\.\w+$/, "") + ".webp", {
+                    type: "image/webp"
+                  });
+                  resolve(webpFile);
+                } else {
+                  reject("Conversion failed");
+                }
+              },
+              "image/webp",
+              0.95
+            );
+          };
+        };
+
+        reader.onerror = (err) => reject(err);
+      });
+    }
+
+    document.getElementById("inputFile").addEventListener("change", async (e) => {
+      const files = e.target.files;
+
+      for (let file of files) {
+        const webp = await convertToWebp(file);
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(webp);
+        link.download = webp.name;
+        link.click();
+      }
+
+      alert("All images converted to WebP!");
+    });
+  </script>
+
+</body>
+</html>
